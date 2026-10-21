@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel AI | Spam Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">S</div>
+                <div>
+                    <h2>Sentinel<span>AI</span></h2>
+                    <small>MESSAGE SECURITY</small>
+                </div>
+            </div>
+
+            <p class="nav-label">WORKSPACE</p>
+            <a href="#dashboard" class="nav-item active">◈ &nbsp; Dashboard</a>
+            <a href="#analyzer" class="nav-item">⌕ &nbsp; Message Analyzer</a>
+            <a href="#history" class="nav-item">◷ &nbsp; Recent Activity</a>
+
+            <div class="sidebar-bottom">
+                <div class="security-status">
+                    <span class="status-dot"></span>
+                    <div>
+                        <strong>System Protected</strong>
+                        <small>AI engine available</small>
+                    </div>
+                </div>
+                <p class="version">SENTINEL AI · VERSION 1.0</p>
+            </div>
+        </aside>
+
+        <main class="main-content" id="dashboard">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">AI SECURITY CENTER</p>
+                    <h1>Threat Detection Dashboard</h1>
+                    <p class="subtitle">Analyze messages and identify potential spam threats.</p>
+                </div>
+                <div class="profile">
+                    <div class="profile-icon">AI</div>
+                    <div>
+                        <strong>Security Analyst</strong>
+                        <small>Local environment</small>
+                    </div>
+                </div>
+            </header>
+
+            <section class="welcome-banner">
+                <div>
+                    <span class="banner-tag">✦ INTELLIGENT PROTECTION</span>
+                    <h2>Stay one step ahead of spam.</h2>
+                    <p>Analyze suspicious messages using machine learning and protect your inbox from unwanted content.</p>
+                    <a href="#analyzer" class="primary-link">
+                        Analyze a message <span>→</span>
+                    </a>
+                </div>
+                <div class="shield-art">
+                    <div class="shield-glow"></div>
+                    <div class="shield">✓</div>
+                    <span class="orbit orbit-one"></span>
+                    <span class="orbit orbit-two"></span>
+                </div>
+            </section>
+
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Messages Analyzed</span>
+                        <span class="stat-icon purple">⌕</span>
+                    </div>
+                    <h2 id="total-count">0</h2>
+                    <p>During this session</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Spam Detected</span>
+                        <span class="stat-icon red">⚠</span>
+                    </div>
+                    <h2 id="spam-count">0</h2>
+                    <p>Potential threats identified</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Safe Messages</span>
+                        <span class="stat-icon green">✓</span>
+                    </div>
+                    <h2 id="safe-count">0</h2>
+                    <p>Classified as not spam</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Detection Rate</span>
+                        <span class="stat-icon blue">◎</span>
+                    </div>
+                    <h2 id="spam-rate">0%</h2>
+                    <p>Spam among analyzed messages</p>
+                </article>
+            </section>
+
+            <section class="workspace-grid">
+                <article class="panel analyzer-panel" id="analyzer">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">MACHINE LEARNING</p>
+                            <h2>Message Analyzer</h2>
+                        </div>
+                        <span class="live-badge"><span></span> READY</span>
+                    </div>
+
+                    <form method="POST" action="/" id="analyzer-form">
+                        <label for="message">MESSAGE CONTENT</label>
+
+                        <textarea
+                            id="message"
+                            name="message"
+                            maxlength="5000"
+                            placeholder="Paste a suspicious SMS or message here..."
+                            required>{{ message or '' }}</textarea>
+
+                        <div class="input-footer">
+                            <span>Do not enter passwords or sensitive information.</span>
+                            <span id="char-count">0 / 5000</span>
+                        </div>
+
+                        <button type="submit" class="analyze-button">
+                            <span>✧</span>
+                            Analyze Message
+                            <span class="button-arrow">→</span>
+                        </button>
+                    </form>
+
+                    {% if result %}
+                    <div class="result-box {% if result.prediction == 'SPAM' %}result-spam{% elif result.prediction == 'NOT SPAM' %}result-safe{% else %}result-warning{% endif %}">
+
+                        <div class="result-symbol">
+                            {% if result.prediction == 'SPAM' %}
+                                ⚠
+                            {% elif result.prediction == 'NOT SPAM' %}
+                                ✓
+                            {% else %}
+                                !
+                            {% endif %}
+                        </div>
+
+                        <div class="result-details">
+                            <p class="eyebrow">AI ANALYSIS RESULT</p>
+
+                            <h3>
+                                {% if result.prediction == 'SPAM' %}
+                                    Potential Spam Detected
+                                {% elif result.prediction == 'NOT SPAM' %}
+                                    Message Classified as Not Spam
+                                {% else %}
+                                    {{ result.prediction }}
+                                {% endif %}
+                            </h3>
+
+                            {% if result.confidence is defined %}
+                                <p>
+                                    Model confidence estimate:
+                                    <strong>{{ result.confidence }}%</strong>
+                                </p>
+
+                                <div class="confidence-track">
+                                    <div
+                                        class="confidence-fill"
+                                        style="width: {{ result.confidence }}%">
+                                    </div>
+                                </div>
+
+                                <p class="result-meta">
+                                    Suspicious terms found:
+                                    <strong>{{ result.suspicious_terms | length }}</strong>
+                                </p>
+
+                                {% if result.suspicious_terms %}
+                                    <div class="term-list">
+                                        {% for term in result.suspicious_terms %}
+                                            <span class="term-chip">{{ term }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="result-meta">
+                                        No terms from the basic warning-word list were found.
+                                    </p>
+                                {% endif %}
+
+                                <p class="result-meta">
+                                    Links detected: {{ result.links_found }}
+                                </p>
+
+                                <p class="result-disclaimer">
+                                    Confidence is a model estimate, not a guarantee of safety.
+                                    Warning-word matches are simple indicators, not proof of spam.
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </article>
+
+                <article class="panel tips-panel">
+                    <p class="eyebrow">SECURITY INSIGHTS</p>
+                    <h2>What to look for</h2>
+
+                    <div class="insight-item">
+                        <div class="insight-icon red">!</div>
+                        <div>
+                            <h3>Urgent requests</h3>
+                            <p>Messages pressuring you to act immediately may be suspicious.</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-item">
+                        <div class="insight-icon purple">₹</div>
+                        <div>
+                            <h3>Unexpected rewards</h3>
+                            <p>Unsolicited prizes or cash offers can be warning signs.</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-item">
+                        <div class="insight-icon blue">↗</div>
+                        <div>
+                            <h3>Unknown links</h3>
+                            <p>Avoid opening unfamiliar links or sharing personal information.</p>
+                        </div>
+                    </div>
+
+                    <div class="notice">
+                        <strong>ⓘ Model limitation</strong>
+                        <p>Predictions are estimates, not guarantees. A message may be misclassified.</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="panel history-panel" id="history">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">YOUR SESSION</p>
+                        <h2>Recent Analysis</h2>
+                    </div>
+                    <button type="button" id="clear-history" class="clear-button">
+                        Clear history
+                    </button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MESSAGE</th>
+                                <th>CLASSIFICATION</th>
+                                <th>TIME</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    No messages analyzed in this session yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer>
+                <span>© 2026 Sentinel AI · AI Spam Detection System</span>
+                <span>Built with Flask &amp; Machine Learning</span>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const form = document.getElementById("analyzer-form");
+        const messageInput = document.getElementById("message");
+        const charCount = document.getElementById("char-count");
+
+        function updateCharacterCount() {
+            charCount.textContent =
+                `${messageInput.value.length} / 5000`;
+        }
+
+        messageInput.addEventListener("input", updateCharacterCount);
+        updateCharacterCount();
+
+        // Validate the message before submitting the form.
+        form.addEventListener("submit", function(event) {
+            const value = messageInput.value.trim();
+
+            if (!value) {
+                event.preventDefault();
+                messageInput.focus();
+            }
+        });
+
+        // Display and update recent analysis history.
+        function renderHistory() {
+            const body = document.getElementById("history-body");
+            let rows = [];
+
+            try {
+                rows = JSON.parse(
+                    sessionStorage.getItem("sentinelHistory") || "[]"
+                );
+            } catch (error) {
+                rows = [];
+            }
+
+            body.innerHTML = "";
+
+            const total = rows.length;
+            const spam = rows.filter(
+                item => item.result === "SPAM"
+            ).length;
+
+            const safe = rows.filter(
+                item => item.result === "NOT SPAM"
+            ).length;
+
+            document.getElementById("total-count").textContent = total;
+            document.getElementById("spam-count").textContent = spam;
+            document.getElementById("safe-count").textContent = safe;
+
+            document.getElementById("spam-rate").textContent =
+                total ? Math.round((spam / total) * 100) + "%" : "0%";
+
+            if (rows.length === 0) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="empty-state">
+                            No messages analyzed in this session yet.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            rows.forEach(item => {
+                const tr = document.createElement("tr");
+
+                const msg = document.createElement("td");
+                msg.textContent = item.message.length > 65
+                    ? item.message.slice(0, 65) + "…"
+                    : item.message;
+
+                const resultCell = document.createElement("td");
+                const badge = document.createElement("span");
+
+                badge.className =
+                    "classification " +
+                    (item.result === "SPAM" ? "spam-badge" : "safe-badge");
+
+                badge.textContent = item.result;
+                resultCell.appendChild(badge);
+
+                const time = document.createElement("td");
+                time.textContent = item.time;
+
+                tr.append(msg, resultCell, time);
+                body.appendChild(tr);
+            });
+        }
+
+        // Read the result returned by Flask.
+        const currentPrediction =
+            {{ (result.prediction if result else '') | tojson }};
+
+        const currentMessage =
+            {{ (message or '') | tojson }};
+
+        // Save a completed analysis only after Flask returns its result.
+        if (
+            (currentPrediction === "SPAM" ||
+             currentPrediction === "NOT SPAM") &&
+            currentMessage
+        ) {
+            try {
+                let savedHistory = JSON.parse(
+                    sessionStorage.getItem("sentinelHistory") || "[]"
+                );
+
+                const alreadySaved =
+                    savedHistory.length > 0 &&
+                    savedHistory[0].message === currentMessage &&
+                    savedHistory[0].result === currentPrediction;
+
+                if (!alreadySaved) {
+                    savedHistory.unshift({
+                        message: currentMessage,
+                        result: currentPrediction,
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        })
+                    });
+
+                    sessionStorage.setItem(
+                        "sentinelHistory",
+                        JSON.stringify(savedHistory.slice(0, 10))
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    "Could not save analysis history:",
+                    error
+                );
+            }
+        }
+
+        // Clear saved session history.
+        document.getElementById("clear-history").addEventListener(
+            "click",
+            function() {
+                sessionStorage.removeItem("sentinelHistory");
+                renderHistory();
+            }
+        );
+
+        renderHistory();
+    </script>
+</body>
+</html>
